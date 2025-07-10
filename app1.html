@@ -1,0 +1,2456 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>quizAI - La tua mente aumentata</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* VARIABILI GLOBALI */
+        :root {
+            --primary: #6c63ff;
+            --primary-dark: #5a52e0;
+            --secondary: #00bfa6;
+            --accent: #ff6b6b;
+            --dark: #1e1e2e;
+            --darker: #121220;
+            --light: #f8f9ff;
+            --card-bg: rgba(255, 255, 255, 0.97);
+            --transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+            --inner-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+            --header-height: 90px;
+            --glass-bg: rgba(30, 30, 46, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.12);
+        }
+
+        /* RESET E STILI BASE */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker), var(--dark));
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 90% 10%, rgba(108, 99, 255, 0.2), transparent 30%),
+                radial-gradient(circle at 10% 90%, rgba(0, 191, 166, 0.2), transparent 35%),
+                radial-gradient(circle at 50% 50%, rgba(255, 107, 107, 0.15), transparent 45%);
+            z-index: -1;
+            opacity: 0.8;
+        }
+
+        .app-container {
+            max-width: 1800px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 30px;
+        }
+
+        /* HEADER - Design Moderno */
+        header {
+            grid-column: 1 / -1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 0 40px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            height: var(--header-height);
+            animation: slideDown 0.6s ease-out forwards;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--light);
+            text-decoration: none;
+            position: relative;
+            margin-right: 160px;
+        }
+
+        .logo span {
+            color: var(--secondary);
+            animation: logo-pulse 3s infinite;
+        }
+
+        @keyframes logo-pulse {
+            0% { text-shadow: 0 0 0 rgba(139, 92, 246, 0); }
+            50% { text-shadow: 0 0 15px rgba(139, 92, 246, 0.8); }
+            100% { text-shadow: 0 0 0 rgba(139, 92, 246, 0); }
+        }
+
+        .logo i {
+            color: var(--secondary);
+            animation: spin 8s linear infinite;
+        }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+
+        .user-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .action-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 16px;
+            background: rgba(108, 99, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--light);
+            font-size: 22px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            box-shadow: var(--inner-shadow);
+        }
+
+        .action-btn:hover {
+            background: var(--primary);
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(108, 99, 255, 0.5);
+        }
+
+        .notification-btn::after {
+            content: '3';
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 26px;
+            height: 26px;
+            background: var(--accent);
+            border-radius: 50%;
+            font-size: 13px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+        }
+
+        /* SIDEBAR - Design Moderno */
+        .sidebar {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 30px 0;
+            height: calc(100vh - var(--header-height) - 40px);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--glass-border);
+            animation: fadeIn 0.7s ease-out forwards;
+            animation-delay: 0.1s;
+            position: sticky;
+            top: calc(var(--header-height) + 20px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-item {
+            padding: 20px 35px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            position: relative;
+            font-size: 18px;
+            margin: 5px 10px;
+            border-radius: 15px;
+        }
+
+        .nav-item:hover {
+            color: white;
+            background: rgba(108, 99, 255, 0.3);
+        }
+
+        .nav-item.active {
+            color: white;
+            background: linear-gradient(90deg, rgba(108, 99, 255, 0.5), transparent);
+            box-shadow: var(--inner-shadow);
+        }
+
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 6px;
+            background: var(--primary);
+            border-radius: 0 10px 10px 0;
+        }
+
+        .nav-icon {
+            font-size: 24px;
+            width: 30px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .nav-item:hover .nav-icon {
+            transform: scale(1.2);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding: 25px 35px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+        }
+
+        .user-info {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .user-role {
+            font-size: 15px;
+            color: var(--secondary);
+            font-weight: 600;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 30px;
+            padding-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 28px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            position: relative;
+            padding-bottom: 15px;
+            text-shadow: 0 2px 10px rgba(108,99,255,0.10);
+        }
+
+        .section-title.gradient {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .section-title i {
+            color: var(--primary-dark);
+            filter: drop-shadow(0 0 8px var(--primary));
+            margin-right: 8px;
+            transition: color 0.3s;
+            text-shadow: 0 2px 10px rgba(108,99,255,0.10);
+        }
+        .section-title:hover i {
+            color: var(--accent);
+            filter: drop-shadow(0 0 12px var(--accent));
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 4px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            color: #1e293b; /* Testo scuro per leggibilità */
+            animation: fadeIn 0.8s ease-out forwards;
+            will-change: transform;
+            overflow: hidden;
+            position: relative;
+            height: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .card-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-dark);
+            text-shadow: 0 2px 10px rgba(108,99,255,0.10);
+        }
+
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            background: rgba(108, 99, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 26px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        .card:hover .card-icon {
+            transform: rotate(10deg);
+            background: rgba(108, 99, 255, 0.25);
+        }
+
+        /* GUIDE SECTION */
+        .guide-section {
+            grid-column: span 8;
+        }
+
+        .guide-steps {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+        }
+
+        .step-card {
+            background: linear-gradient(135deg, #f0f4ff, #e6e9ff);
+            padding: 35px;
+            border-radius: 25px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .step-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .step-number {
+            width: 55px;
+            height: 55px;
+            border-radius: 18px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 24px;
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.5);
+        }
+
+        .step-title {
+            font-weight: 800;
+            font-size: 24px;
+            color: #1e293b; /* Testo scuro per leggibilità */
+        }
+
+        .step-description {
+            color: #4a5568;
+            line-height: 1.8;
+            font-size: 17px;
+        }
+
+        .pro-tip {
+            background: rgba(0, 191, 166, 0.15);
+            border-left: 5px solid var(--secondary);
+            padding: 25px;
+            border-radius: 0 18px 18px 0;
+            margin-top: 30px;
+            display: flex;
+            gap: 18px;
+            align-items: flex-start;
+            font-size: 18px;
+            backdrop-filter: blur(5px);
+        }
+
+        /* DASHBOARD SECTION */
+        .dashboard-section {
+            grid-column: span 4;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 35px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #f8f9ff, #f0f2ff);
+            border-radius: 22px;
+            padding: 28px;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .stat-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 800;
+            margin: 15px 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* CHART SECTION */
+        .chart-section {
+            grid-column: span 12;
+            margin-top: 15px;
+        }
+
+        .chart-container {
+            height: 420px;
+            position: relative;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 20px;
+        }
+
+        .chart-btn {
+            padding: 14px 28px;
+            background: rgba(30, 30, 46, 0.8);
+            border: none;
+            border-radius: 15px;
+            color: var(--light);
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 700;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        .chart-btn.active {
+            background: var(--primary);
+            box-shadow: 0 10px 25px rgba(108, 99, 255, 0.6);
+            transform: translateY(-3px);
+        }
+
+        .chart-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        /* PERFORMANCE SECTION */
+        .performance-section {
+            grid-column: span 12;
+            margin-top: 15px;
+        }
+
+        .performance-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 30px;
+        }
+
+        .performance-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 30px;
+            text-align: center;
+            transition: var(--transition);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .performance-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .performance-icon {
+            font-size: 42px;
+            margin-bottom: 25px;
+            color: var(--primary-dark);
+            transition: var(--transition);
+            text-shadow: 0 2px 10px rgba(108,99,255,0.10);
+        }
+
+        .performance-card:hover .performance-icon {
+            transform: scale(1.2);
+            color: var(--secondary);
+        }
+
+        /* VIEW MODE SECTION */
+        .view-section {
+            grid-column: span 12;
+        }
+
+        .view-container {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .view-preview {
+            background: linear-gradient(135deg, #2d2d42, #1e1e2e);
+            border-radius: 25px;
+            height: 450px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            padding: 40px;
+            text-align: center;
+            box-shadow: var(--inner-shadow);
+        }
+
+        /* SECTION MANAGEMENT */
+        .section-content {
+            display: none;
+            grid-column: 1 / -1;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 30px;
+        }
+        
+        .section-content.active {
+            display: grid;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* SETTINGS SECTION */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(1, 1fr);
+            gap: 30px;
+            width: 100%;
+        }
+
+        .setting-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 35px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            transition: var(--transition);
+            width: 100%;
+        }
+
+        .setting-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+        }
+
+        .setting-header {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .setting-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(108, 99, 255, 0.15);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            color: var(--primary);
+        }
+
+        .setting-info h3 {
+            font-size: 24px;
+            color: #1e293b;
+            margin-bottom: 8px;
+            font-weight: 800;
+        }
+
+        .setting-info p {
+            color: #64748b;
+            font-size: 17px;
+            line-height: 1.6;
+        }
+
+        .form-group {
+            margin-bottom: 30px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 700;
+            color: #1e293b;
+            font-size: 18px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 18px 22px;
+            border-radius: 18px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            font-size: 17px;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(108, 99, 255, 0.2);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 65px;
+            height: 38px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 30px;
+            width: 30px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(27px);
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card:nth-child(1) { animation-delay: 0.2s; }
+        .card:nth-child(2) { animation-delay: 0.3s; }
+        .card:nth-child(3) { animation-delay: 0.4s; }
+        .card:nth-child(4) { animation-delay: 0.5s; }
+        
+        /* RIPPLE EFFECT */
+        .ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .ripple-effect {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+        
+        @keyframes ripple {
+            to {
+                transform: scale(2.5);
+                opacity: 0;
+            }
+        }
+
+        /* CALENDAR STYLES */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .calendar-nav {
+            display: flex;
+            gap: 15px;
+        }
+
+        .calendar-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+            margin-bottom: 22px;
+            text-align: center;
+        }
+
+        .calendar-day {
+            padding: 15px;
+            font-weight: 700;
+            color: #1e293b; /* Testo scuro per leggibilità */
+            font-size: 16px;
+            opacity: 0.7;
+        }
+
+        .calendar-dates {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+        }
+
+        .calendar-date {
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 18px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.95);
+            position: relative;
+            font-size: 18px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            color: #1e293b; /* Testo scuro per leggibilità */
+        }
+
+        .calendar-date:hover {
+            background: var(--primary);
+            color: white;
+            transform: scale(1.08);
+            box-shadow: 0 10px 25px rgba(108, 99, 255, 0.4);
+        }
+
+        .calendar-date.event::after {
+            content: '';
+            position: absolute;
+            bottom: 10px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--secondary);
+        }
+
+        .calendar-date.today {
+            background: var(--primary);
+            color: white;
+            font-weight: 800;
+            box-shadow: 0 10px 25px rgba(108, 99, 255, 0.6);
+            transform: scale(1.05);
+        }
+
+        .calendar-date.inactive {
+            color: #a0aec0;
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* GUIDE DETAILS SECTION */
+        .guide-details {
+            grid-column: span 12;
+        }
+
+        .guide-feature {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: linear-gradient(135deg, #f0f4ff, #e6e9ff);
+            border-radius: 25px;
+            transition: var(--transition);
+        }
+
+        .guide-feature:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        }
+
+        .guide-feature-icon {
+            min-width: 100px;
+            height: 100px;
+            background: var(--primary);
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: var(--light);
+            box-shadow: 0 2px 10px rgba(108,99,255,0.10);
+        }
+
+        .guide-feature-content h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+
+        .guide-feature-content p {
+            color: #4a5568;
+            line-height: 1.8;
+            font-size: 17px;
+        }
+
+        /* FAQ SECTION */
+        .faq-container {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 35px;
+        }
+
+        .faq-item {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .faq-question {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-shadow: 0 2px 10px rgba(108,99,255,0.10);
+        }
+
+        .faq-answer {
+            color: #64748b;
+            line-height: 1.7;
+            font-size: 17px;
+            display: none;
+        }
+
+        .faq-item.active .faq-answer {
+            display: block;
+        }
+
+        /* CAMERA STYLES */
+        .camera-section {
+            grid-column: span 12;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .camera-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .camera-preview {
+            width: 100%;
+            max-width: 800px;
+            height: 450px;
+            background: linear-gradient(135deg, #2d2d42, #1e1e2e);
+            border-radius: 25px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 30px;
+            box-shadow: var(--inner-shadow);
+        }
+
+        .camera-actions {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .camera-btn {
+            padding: 16px 32px;
+            border-radius: 18px;
+            font-weight: 700;
+            font-size: 17px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .primary-btn {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 25px rgba(108, 99, 255, 0.5);
+        }
+
+        .primary-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-5px);
+        }
+
+        .secondary-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .secondary-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .accent-btn {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 10px 25px rgba(255, 107, 107, 0.4);
+        }
+
+        .accent-btn:hover {
+            background: #ff5252;
+            transform: translateY(-5px);
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 1600px) {
+            .app-container {
+                grid-template-columns: 280px 1fr;
+            }
+            
+            .dashboard-section {
+                grid-column: span 6;
+            }
+            
+            .performance-section {
+                grid-column: span 12;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                position: relative;
+                top: 0;
+                height: auto;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .guide-steps, .performance-cards {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 900px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .chart-controls {
+                flex-wrap: wrap;
+            }
+            
+            header {
+                flex-direction: column;
+                gap: 20px;
+                text-align: center;
+                height: auto;
+                padding: 20px;
+            }
+            
+            .guide-steps, .performance-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-section {
+                grid-column: span 12;
+            }
+            
+            .camera-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .guide-feature {
+                flex-direction: column;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+            
+            .card {
+                padding: 25px;
+            }
+        }
+
+        /* FIX PER MOBILE E LAPTOP */
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                padding: 10px;
+            }
+            
+            body {
+                padding: 10px;
+                overflow-x: auto;
+            }
+            
+            .sidebar {
+                position: relative;
+                top: 0;
+                height: auto;
+                margin-bottom: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <a href="#" class="logo">
+                <i class="fas fa-brain"></i>
+                quiz<span>AI</span>
+            </a>
+            <div class="user-actions">
+                <button class="action-btn notification-btn ripple">
+                    <i class="fas fa-bell"></i>
+                </button>
+                <button class="action-btn user-btn ripple">
+                    <i class="fas fa-user"></i>
+                </button>
+            </div>
+        </header>
+
+        <aside class="sidebar">
+            <div class="nav-item active" data-target="dashboard">
+                <div class="nav-icon"><i class="fas fa-home"></i></div>
+                <div>Dashboard</div>
+            </div>
+            <div class="nav-item" data-target="guide">
+                <div class="nav-icon"><i class="fas fa-book"></i></div>
+                <div>Guide</div>
+            </div>
+            <div class="nav-item" data-target="camera">
+                <div class="nav-icon"><i class="fas fa-camera"></i></div>
+                <div>Modalità Inquadra</div>
+            </div>
+            <div class="nav-item" data-target="view">
+                <div class="nav-icon"><i class="fas fa-eye"></i></div>
+                <div>Modalità Visualizza</div>
+            </div>
+            <div class="nav-item" data-target="stats">
+                <div class="nav-icon"><i class="fas fa-chart-line"></i></div>
+                <div>Statistiche</div>
+            </div>
+            <div class="nav-item" data-target="calendar">
+                <div class="nav-icon"><i class="fas fa-calendar"></i></div>
+                <div>Calendario</div>
+            </div>
+            <div class="nav-item" data-target="settings">
+                <div class="nav-icon"><i class="fas fa-cog"></i></div>
+                <div>Impostazioni</div>
+            </div>
+            
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar">M</div>
+                    <div class="user-info">
+                        <div class="user-name">Santo Mostro</div>
+                        <div class="user-role">Account Premium</div>
+                    </div>
+                    <button class="action-btn ripple">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section-content active">
+                <div class="guide-section card">
+                    <h2 class="section-title"><i class="fas fa-book-open"></i> Guida Rapida</h2>
+                    <div class="guide-steps">
+                        <div class="step-card">
+                            <div class="step-number">1</div>
+                            <h3 class="step-title">Preparazione del dispositivo</h3>
+                            <p class="step-description">Posiziona il dispositivo INQUADRA su un treppiede stabile, assicurando che il monitor sia completamente visibile.</p>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-number">2</div>
+                            <h3 class="step-title">Avvia quizAI</h3>
+                            <p class="step-description">Apri l'app quizAI e seleziona "Modalità Inquadra" per iniziare la sessione.</p>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-number">3</div>
+                            <h3 class="step-title">Visualizzazione</h3>
+                            <p class="step-description">Sul tuo telefono personale, apri "Modalità Visualizza" per ricevere le risposte in tempo reale.</p>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-number">4</div>
+                            <h3 class="step-title">Analisi AI</h3>
+                            <p class="step-description">L'AI elabora le domande e fornisce le risposte in modo automatico e istantaneo.</p>
+                        </div>
+                    </div>
+                    <div class="pro-tip">
+                        <i class="fas fa-lightbulb" style="color: var(--secondary); font-size: 26px;"></i>
+                        <div>
+                            <strong>Consiglio pro:</strong> Per risultati ottimali, utilizza l'app in condizioni di luce soffusa e assicurati di avere una connessione internet stabile. Evita riflessi sullo schermo.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-section card">
+                    <h2 class="section-title"><i class="fas fa-trophy"></i> Il Tuo Percorso</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">28</div>
+                            <div class="stat-label">Media Esami</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">5</div>
+                            <div class="stat-label">Esami Completati</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">92%</div>
+                            <div class="stat-label">Tasso di Successo</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">17</div>
+                            <div class="stat-label">Giorni di Studio</div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-header">
+                        <h3 class="card-title">Storico Esami</h3>
+                        <div class="card-icon">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                    </div>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="padding: 18px 0; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <i class="fas fa-book" style="color: var(--primary); margin-right: 15px; font-size: 20px;"></i>
+                                <span style="font-weight: 600;">Economia</span>
+                            </div>
+                            <div style="font-weight: 800; background: linear-gradient(to right, var(--primary), var(--secondary)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">28</div>
+                        </li>
+                        <li style="padding: 18px 0; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <i class="fas fa-chart-bar" style="color: var(--secondary); margin-right: 15px; font-size: 20px;"></i>
+                                <span style="font-weight: 600;">Marketing</span>
+                            </div>
+                            <div style="font-weight: 800; color: var(--secondary);">30L</div>
+                        </li>
+                        <li style="padding: 18px 0; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <i class="fas fa-calculator" style="color: var(--accent); margin-right: 15px; font-size: 20px;"></i>
+                                <span style="font-weight: 600;">Statistica</span>
+                            </div>
+                            <div style="font-weight: 800; color: var(--accent);">26</div>
+                        </li>
+                        <li style="padding: 18px 0; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <i class="fas fa-coins" style="color: #8a84ff; margin-right: 15px; font-size: 20px;"></i>
+                                <span style="font-weight: 600;">Finanza Aziendale</span>
+                            </div>
+                            <div style="font-weight: 800; color: #8a84ff;">27</div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="chart-section card">
+                    <div class="chart-header">
+                        <h2 class="section-title"><i class="fas fa-chart-line"></i> Andamento Esami</h2>
+                        <div class="chart-controls">
+                            <button class="chart-btn active ripple" data-exam="economia">
+                                <i class="fas fa-book"></i> Economia
+                            </button>
+                            <button class="chart-btn ripple" data-exam="marketing">
+                                <i class="fas fa-chart-bar"></i> Marketing
+                            </button>
+                            <button class="chart-btn ripple" data-exam="statistica">
+                                <i class="fas fa-calculator"></i> Statistica
+                            </button>
+                            <button class="chart-btn ripple" data-exam="finanza">
+                                <i class="fas fa-coins"></i> Finanza
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="examChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="performance-section card">
+                    <h2 class="section-title"><i class="fas fa-rocket"></i> Prestazioni AI</h2>
+                    <div class="performance-cards">
+                        <div class="performance-card">
+                            <div class="performance-icon">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h3 style="color: #1e293b; margin-bottom: 15px; font-size: 22px;">Velocità</h3>
+                            <p style="color: #64748b; font-size: 17px;">Risposte in <strong>meno di 1.2 secondi</strong> grazie al nostro motore AI ottimizzato</p>
+                        </div>
+                        <div class="performance-card">
+                            <div class="performance-icon">
+                                <i class="fas fa-brain"></i>
+                            </div>
+                            <h3 style="color: #1e293b; margin-bottom: 15px; font-size: 22px;">Precisione</h3>
+                            <p style="color: #64748b; font-size: 17px;"><strong>97.3% di accuratezza</strong> su oltre 10,000 test accademici</p>
+                        </div>
+                        <div class="performance-card">
+                            <div class="performance-icon">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <h3 style="color: #1e293b; margin-bottom: 15px; font-size: 22px;">Database</h3>
+                            <p style="color: #64748b; font-size: 17px;">Accesso a <strong>2.5 milioni</strong> di soluzioni verificate in tempo reale</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Guide Section -->
+            <section id="guide" class="section-content">
+                <div class="guide-details card">
+                    <h2 class="section-title"><i class="fas fa-book"></i> Guida Completa quizAI</h2>
+                    
+                    <div class="pro-tip" style="margin-bottom: 40px;">
+                        <i class="fas fa-star" style="color: var(--secondary); font-size: 26px;"></i>
+                        <div>
+                            <strong>Esperienza Ottimale:</strong> Segui questa guida passo-passo per sfruttare al massimo le potenzialità di quizAI. Scoprirai come trasformare ogni esame in un successo garantito!
+                        </div>
+                    </div>
+                    
+                    <div class="guide-steps">
+                        <div class="step-card">
+                            <div class="step-number">1</div>
+                            <h3 class="step-title">Configurazione Iniziale</h3>
+                            <p class="step-description">Posiziona il dispositivo secondario (tablet o telefono) su un treppiede stabile, assicurando una visuale completa del monitor dell'esame. L'angolo ideale è di 45° con una distanza di 50-70 cm.</p>
+                            <div class="pro-tip" style="margin-top: 15px; background: rgba(108, 99, 255, 0.1);">
+                                <i class="fas fa-lightbulb" style="color: var(--primary);"></i>
+                                <div>Utilizza un treppiede con giunto sferico per regolazioni millimetriche</div>
+                            </div>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-number">2</div>
+                            <h3 class="step-title">Ottimizzazione Illuminazione</h3>
+                            <p class="step-description">Assicurati che l'ambiente abbia un'illuminazione uniforme senza riflessi sullo schermo. Evita luci dirette che possano creare abbagliamenti o interferire con la lettura del testo.</p>
+                            <div class="pro-tip" style="margin-top: 15px; background: rgba(108, 99, 255, 0.1);">
+                                <i class="fas fa-lightbulb" style="color: var(--primary);"></i>
+                                <div>La temperatura colore ideale è tra 5000K e 6500K (luce giorno)</div>
+                            </div>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-number">3</div>
+                            <h3 class="step-title">Connessione di Rete</h3>
+                            <p class="step-description">Collegati a una rete stabile a 5GHz per minimizzare la latenza. Verifica la velocità di connessione (>50Mbps in download, >10Mbps in upload) per garantire prestazioni ottimali.</p>
+                            <div class="pro-tip" style="margin-top: 15px; background: rgba(108, 99, 255, 0.1);">
+                                <i class="fas fa-lightbulb" style="color: var(--primary);"></i>
+                                <div>Disattiva altri dispositivi sulla rete durante l'esame</div>
+                            </div>
+                        </div>
+                        <div class="step-card">
+                            <div class="step-number">4</div>
+                            <h3 class="step-title">Calibrazione AI</h3>
+                            <p class="step-description">Esegui il test di calibrazione nell'app per ottimizzare il riconoscimento del carattere. Il sistema imparerà a riconoscere il font specifico del tuo esame per una precisione del 99.2%.</p>
+                            <div class="pro-tip" style="margin-top: 15px; background: rgba(108, 99, 255, 0.1);">
+                                <i class="fas fa-lightbulb" style="color: var(--primary);"></i>
+                                <div>Mantieni una risoluzione schermo di almeno 1080p per risultati perfetti</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 50px;">
+                        <h2 class="section-title"><i class="fas fa-gem"></i> Funzionalità Avanzate</h2>
+                        
+                        <div class="guide-feature">
+                            <div class="guide-feature-icon">
+                                <i class="fas fa-sync-alt"></i>
+                            </div>
+                            <div class="guide-feature-content">
+                                <h3>Sincronizzazione in Tempo Reale</h3>
+                                <p>La nostra tecnologia proprietaria garantisce una latenza media di soli 1.2 secondi tra la visualizzazione della domanda e la ricezione della risposta. Il sistema elabora anche domande complesse con grafici e diagrammi grazie all'AI avanzata.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="guide-feature">
+                            <div class="guide-feature-icon" style="background: var(--secondary);">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <div class="guide-feature-content">
+                                <h3>Sicurezza e Anonimato</h3>
+                                <p>Tutte le comunicazioni sono criptate end-to-end con protocollo AES-256. I dati vengono cancellati automaticamente dopo ogni sessione e non lasciano tracce identificabili. La modalità "stealth" rende l'app completamente invisibile durante gli esami.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="guide-feature">
+                            <div class="guide-feature-icon" style="background: var(--accent);">
+                                <i class="fas fa-database"></i>
+                            </div>
+                            <div class="guide-feature-content">
+                                <h3>Database Intelligente</h3>
+                                <p>Accedi a un archivio di 2.5 milioni di soluzioni verificate, costantemente aggiornato dal nostro network di esperti. L'AI impara dai tuoi esami precedenti per offrire risposte sempre più personalizzate e accurate.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="faq-container" style="margin-top: 50px;">
+                        <h2 class="section-title"><i class="fas fa-question-circle"></i> Domande Frequenti</h2>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>Quanto tempo serve per configurare quizAI prima di un esame?</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>Con la nostra configurazione guidata, sarai operativo in meno di 5 minuti. Il sistema è progettato per essere immediatamente intuitivo anche per utenti non tecnici.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>quizAI funziona con qualsiasi tipo di esame?</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>L'AI è ottimizzata per esami a scelta multipla, vero/falso, corrispondenze e domande aperte brevi. Supportiamo 7 lingue e riconosciamo oltre 50 formati di domande diversi con una precisione del 97.3%.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>Come garantite la mia privacy durante l'uso?</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>Tutte le elaborazioni avvengono in tempo reale senza memorizzazione dei dati. Utilizziamo crittografia militare e cancelliamo automaticamente ogni traccia dopo la sessione. Nessun dato personale viene mai associato alle tue attività.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="faq-item">
+                            <div class="faq-question">
+                                <span>Posso usare quizAI su più dispositivi contemporaneamente?</span>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div class="faq-answer">
+                                <p>Con l'account Premium puoi collegare fino a 3 dispositivi. La sincronizzazione avviene in tempo reale, permettendoti di avere un dispositivo in modalità inquadra e uno in modalità visualizza, più un backup di sicurezza.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Camera Section -->
+            <section id="camera" class="section-content">
+                <div class="camera-section card">
+                    <h2 class="section-title"><i class="fas fa-camera"></i> Modalità Inquadra</h2>
+                    <div class="camera-container">
+                        <div class="camera-preview">
+                            <div class="camera-placeholder">
+                                <i class="fas fa-camera" style="font-size: 60px; margin-bottom: 20px; color: var(--primary);"></i>
+                                <p>Anteprima della fotocamera</p>
+                                <p class="motivation" style="margin-top: 20px; color: var(--primary); font-weight: 700; font-size: 18px;">Inquadra il monitor per iniziare</p>
+                            </div>
+                        </div>
+                        
+                        <div class="camera-actions">
+                            <button class="camera-btn primary-btn ripple" id="capture-btn">
+                                <i class="fas fa-camera"></i> Scatta Foto
+                            </button>
+                            <button class="camera-btn secondary-btn ripple" id="reload-btn">
+                                <i class="fas fa-sync-alt"></i> Ricarica
+                            </button>
+                            <button class="camera-btn accent-btn ripple" id="upload-btn">
+                                <i class="fas fa-upload"></i> Carica Immagine
+                            </button>
+                        </div>
+                        
+                        <div class="card" style="margin-top: 30px; padding: 30px;">
+                            <h3 class="card-title">Istruzioni per l'uso</h3>
+                            <div style="margin-top: 25px;">
+                                <p style="margin-bottom: 20px; color: #475569; line-height: 1.8; font-size: 17px; display: flex; align-items: flex-start; gap: 15px;">
+                                    <i class="fas fa-check-circle" style="color: var(--secondary); font-size: 22px; min-width: 30px;"></i>
+                                    Assicurati che il monitor sia completamente visibile nell'inquadratura
+                                </p>
+                                <p style="margin-bottom: 20px; color: #475569; line-height: 1.8; font-size: 17px; display: flex; align-items: flex-start; gap: 15px;">
+                                    <i class="fas fa-check-circle" style="color: var(--secondary); font-size: 22px; min-width: 30px;"></i>
+                                    Evita riflessi di luce diretta sullo schermo
+                                </p>
+                                <p style="color: #475569; line-height: 1.8; font-size: 17px; display: flex; align-items: flex-start; gap: 15px;">
+                                    <i class="fas fa-check-circle" style="color: var(--secondary); font-size: 22px; min-width: 30px;"></i>
+                                    Mantieni una distanza di circa 50-70 cm dal monitor
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- View Mode Section -->
+            <section id="view" class="section-content">
+                <div class="view-section card">
+                    <h2 class="section-title"><i class="fas fa-eye"></i> Modalità Visualizza</h2>
+                    <div class="view-container">
+                        <div class="view-preview">
+                            <div class="view-content">
+                                <h3 style="font-size: 32px; margin-bottom: 20px; color: white; font-weight: 800; text-shadow: 0 2px 10px rgba(0,0,0,0.3);">Risultato Analisi AI</h3>
+                                <div style="font-size: 20px; line-height: 1.7; margin: 0 auto; max-width: 800px;">
+                                    <p style="margin-bottom: 25px; color: #cbd5e1;">Domanda: <strong style="color: white;">Qual è il principio fondamentale della domanda e offerta?</strong></p>
+                                    <div style="margin-top: 30px; padding: 35px; background: rgba(255,255,255,0.1); border-radius: 20px; backdrop-filter: blur(10px);">
+                                        <p style="color: var(--secondary); font-weight: 800; font-size: 24px; margin-bottom: 20px;">Risposta:</p>
+                                        <p style="font-size: 20px; line-height: 1.8;">Il principio fondamentale della domanda e offerta stabilisce che il prezzo di un bene è determinato dall'equilibrio tra la quantità disponibile (offerta) e la quantità desiderata dai consumatori (domanda).</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <h3 class="card-title">Analisi Dettagliata</h3>
+                            <div style="margin-top: 25px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; gap: 20px;">
+                                    <div style="min-width: 200px;">
+                                        <p style="font-weight: 700; color: #1e293b; font-size: 18px;">Livello di sicurezza</p>
+                                        <p style="color: var(--primary); font-size: 24px; font-weight: 800;">97.4%</p>
+                                    </div>
+                                    <div style="min-width: 200px;">
+                                        <p style="font-weight: 700; color: #1e293b; font-size: 18px;">Tempo di elaborazione</p>
+                                        <p style="color: var(--secondary); font-size: 24px; font-weight: 800;">1.24 secondi</p>
+                                    </div>
+                                    <div style="min-width: 200px;">
+                                        <p style="font-weight: 700; color: #1e293b; font-size: 18px;">Fonte</p>
+                                        <p style="color: var(--accent); font-size: 24px; font-weight: 800;">Microeconomia - Capitolo 3</p>
+                                    </div>
+                                </div>
+                                
+                                <div style="margin-top: 30px;">
+                                    <p style="font-weight: 800; color: #1e293b; font-size: 20px; margin-bottom: 20px;">Fonti correlate</p>
+                                    <ul style="margin-top: 15px; padding-left: 25px;">
+                                        <li style="margin-bottom: 15px; color: #64748b; font-size: 17px; list-style-type: none; position: relative; padding-left: 30px;">
+                                            <i class="fas fa-book" style="position: absolute; left: 0; top: 5px; color: var(--primary);"></i>
+                                            Principi di Economia - Capitolo 4
+                                        </li>
+                                        <li style="margin-bottom: 15px; color: #64748b; font-size: 17px; list-style-type: none; position: relative; padding-left: 30px;">
+                                            <i class="fas fa-book" style="position: absolute; left: 0; top: 5px; color: var(--secondary);"></i>
+                                            Manuale di Microeconomia - Pag. 112-115
+                                        </li>
+                                        <li style="color: #64748b; font-size: 17px; list-style-type: none; position: relative; padding-left: 30px;">
+                                            <i class="fas fa-book" style="position: absolute; left: 0; top: 5px; color: var(--accent);"></i>
+                                            Appunti del corso 2023/24 - Lezione 7
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Statistics Section -->
+            <section id="stats" class="section-content">
+                <div class="card" style="grid-column: span 12;">
+                    <h2 class="section-title"><i class="fas fa-chart-line"></i> Statistiche Dettagliate</h2>
+                    <div style="display: grid; grid-template-columns: repeat(12, 1fr); gap: 30px;">
+                        <div class="card" style="grid-column: span 8;">
+                            <h3 class="card-title">Performance per Materia</h3>
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="subjectChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card" style="grid-column: span 4;">
+                            <h3 class="card-title">Distribuzione Risposte</h3>
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="answerChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card" style="grid-column: span 6;">
+                            <h3 class="card-title">Tendenze Temporali</h3>
+                            <div class="chart-container" style="height: 250px;">
+                                <canvas id="trendChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card" style="grid-column: span 6;">
+                            <h3 class="card-title">Confronto con Media Classe</h3>
+                            <div class="chart-container" style="height: 250px;">
+                                <canvas id="comparisonChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calendar Section -->
+            <section id="calendar" class="section-content">
+                <div class="card" style="grid-column: span 12;">
+                    <div class="calendar-header">
+                        <h2 class="section-title"><i class="fas fa-calendar"></i> Calendario Completo</h2>
+                        <div class="calendar-nav">
+                            <button class="chart-btn ripple" id="calendar-prev"><i class="fas fa-chevron-left"></i></button>
+                            <button class="chart-btn ripple" id="calendar-next"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-days">
+                        <div class="calendar-day">Lun</div>
+                        <div class="calendar-day">Mar</div>
+                        <div class="calendar-day">Mer</div>
+                        <div class="calendar-day">Gio</div>
+                        <div class="calendar-day">Ven</div>
+                        <div class="calendar-day">Sab</div>
+                        <div class="calendar-day">Dom</div>
+                    </div>
+                    <div class="calendar-dates" id="full-calendar">
+                        <!-- Calendar dates will be generated by JS -->
+                    </div>
+                    
+                    <div style="margin-top: 40px;">
+                        <h3 class="section-title"><i class="fas fa-tasks"></i> Eventi e Scadenze</h3>
+                        <div style="background: rgba(255, 255, 255, 0.95); border-radius: 25px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid #e2e8f0;">
+                                <div style="width: 60px; height: 60px; background: rgba(108, 99, 255, 0.15); border-radius: 18px; display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 24px;">
+                                    <i class="fas fa-book"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 20px; color: #1e293b;">Esame di Economia Politica</div>
+                                    <div style="display: flex; gap: 20px; margin-top: 10px;">
+                                        <div style="display: flex; align-items: center; gap: 8px; color: var(--primary);">
+                                            <i class="fas fa-calendar"></i>
+                                            <span>15 Luglio 2025</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px; color: var(--secondary);">
+                                            <i class="fas fa-clock"></i>
+                                            <span>09:00 - 11:00</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px; color: var(--accent);">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>Aula Magna</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid #e2e8f0;">
+                                <div style="width: 60px; height: 60px; background: rgba(0, 191, 166, 0.15); border-radius: 18px; display: flex; align-items: center; justify-content: center; color: var(--secondary); font-size: 24px;">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 20px; color: #1e293b;">Gruppo di Studio Marketing</div>
+                                    <div style="display: flex; gap: 20px; margin-top: 10px;">
+                                        <div style="display: flex; align-items: center; gap: 8px; color: var(--primary);">
+                                            <i class="fas fa-calendar"></i>
+                                            <span>10 Luglio 2025</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px; color: var(--secondary);">
+                                            <i class="fas fa-clock"></i>
+                                            <span>16:00 - 18:00</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px; color: var(--accent);">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <span>Biblioteca Centrale</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 20px; align-items: center;">
+                                <div style="width: 60px; height: 60px; background: rgba(255, 107, 107, 0.15); border-radius: 18px; display: flex; align-items: center; justify-content: center; color: var(--accent); font-size: 24px;">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 700; font-size: 20px; color: #1e293b;">Consegna Progetto Finanza</div>
+                                    <div style="display: flex; gap: 20px; margin-top: 10px;">
+                                        <div style="display: flex; align-items: center; gap: 8px; color: var(--primary);">
+                                            <i class="fas fa-calendar"></i>
+                                            <span>20 Luglio 2025</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px; color: var(--secondary);">
+                                            <i class="fas fa-clock"></i>
+                                            <span>23:59</span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 8px; color: var(--accent);">
+                                            <i class="fas fa-laptop"></i>
+                                            <span>Piattaforma Online</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings Section -->
+            <section id="settings" class="section-content">
+                <div class="card" style="grid-column: span 12;">
+                    <h2 class="section-title"><i class="fas fa-cog"></i> Impostazioni</h2>
+                    <div class="settings-grid">
+                        <div class="setting-card">
+                            <div class="setting-header">
+                                <div class="setting-icon">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div class="setting-info">
+                                    <h3>Profilo Utente</h3>
+                                    <p>Gestisci le tue informazioni personali e preferenze</p>
+                                </div>
+                            </div>
+                            <div class="setting-content">
+                                <div class="form-group">
+                                    <label for="username">Nome Utente</label>
+                                    <input type="text" id="username" class="form-control" value="Santo Mostro">
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" id="email" class="form-control" value="santo.mostro@example.com">
+                                </div>
+                                <div class="form-group">
+                                    <label for="university">Università</label>
+                                    <input type="text" id="university" class="form-control" value="Università degli Studi di Milano">
+                                </div>
+                                <div class="form-group">
+                                    <label for="facolta">Facoltà</label>
+                                    <input type="text" id="facolta" class="form-control" value="Economia e Commercio">
+                                </div>
+                                <div class="form-group">
+                                    <label for="anno">Anno di Corso</label>
+                                    <select class="form-control" id="anno">
+                                        <option>Primo</option>
+                                        <option>Secondo</option>
+                                        <option selected>Terzo</option>
+                                        <option>Laurea Magistrale</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-card">
+                            <div class="setting-header">
+                                <div class="setting-icon">
+                                    <i class="fas fa-lock"></i>
+                                </div>
+                                <div class="setting-info">
+                                    <h3>Sicurezza e Privacy</h3>
+                                    <p>Impostazioni di accesso e protezione dati</p>
+                                </div>
+                            </div>
+                            <div class="setting-content">
+                                <div class="form-group">
+                                    <label>Autenticazione a due fattori</label>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>Abilita per maggiore sicurezza</span>
+                                        <label class="toggle-switch">
+                                            <input type="checkbox">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Accesso biometrico</label>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>Sblocca con impronta o riconoscimento facciale</span>
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Blocco automatico</label>
+                                    <select class="form-control">
+                                        <option>Dopo 1 minuto di inattività</option>
+                                        <option selected>Dopo 5 minuti di inattività</option>
+                                        <option>Dopo 15 minuti di inattività</option>
+                                        <option>Mai</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Privacy dei dati</label>
+                                    <select class="form-control">
+                                        <option>Condividi dati anonimi per migliorare il servizio</option>
+                                        <option selected>Non condividere alcun dato</option>
+                                        <option>Condividi solo con l'università</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-card">
+                            <div class="setting-header">
+                                <div class="setting-icon">
+                                    <i class="fas fa-bell"></i>
+                                </div>
+                                <div class="setting-info">
+                                    <h3>Notifiche</h3>
+                                    <p>Gestisci le tue preferenze di notifica</p>
+                                </div>
+                            </div>
+                            <div class="setting-content">
+                                <div class="form-group">
+                                    <label>Notifiche push</label>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>Ricevi notifiche in tempo reale</span>
+                                        <label class="toggle-switch">
+                                            <input type="checkbox" checked>
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Notifiche email</label>
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <span>Ricevi aggiornamenti via email</span>
+                                        <label class="toggle-switch">
+                                            <input type="checkbox">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipi di notifica</label>
+                                    <div style="background: #f1f5f9; border-radius: 15px; padding: 20px;">
+                                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                            <input type="checkbox" id="notify-exams" checked>
+                                            <label for="notify-exams" style="margin-left: 15px; font-size: 17px; color: #1e293b;">Nuovi esami disponibili</label>
+                                        </div>
+                                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                            <input type="checkbox" id="notify-updates" checked>
+                                            <label for="notify-updates" style="margin-left: 15px; font-size: 17px; color: #1e293b;">Aggiornamenti dell'app</label>
+                                        </div>
+                                        <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                                            <input type="checkbox" id="notify-promo">
+                                            <label for="notify-promo" style="margin-left: 15px; font-size: 17px; color: #1e293b;">Promozioni premium</label>
+                                        </div>
+                                        <div style="display: flex; align-items: center;">
+                                            <input type="checkbox" id="notify-events" checked>
+                                            <label for="notify-events" style="margin-left: 15px; font-size: 17px; color: #1e293b;">Eventi e webinar</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="setting-card">
+                            <div class="setting-header">
+                                <div class="setting-icon">
+                                    <i class="fas fa-paint-brush"></i>
+                                </div>
+                                <div class="setting-info">
+                                    <h3>Personalizzazione</h3>
+                                    <p>Modifica l'aspetto e il comportamento dell'app</p>
+                                </div>
+                            </div>
+                            <div class="setting-content">
+                                <div class="form-group">
+                                    <label>Tema</label>
+                                    <select class="form-control">
+                                        <option>Scuro (predefinito)</option>
+                                        <option>Chiaro</option>
+                                        <option>Automatico</option>
+                                        <option>Tema Università</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Colore principale</label>
+                                    <div style="display: flex; align-items: center; gap: 20px;">
+                                        <input type="color" class="form-control" value="#6c63ff" style="width: 80px; height: 50px;">
+                                        <span>#6C63FF</span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label>Dimensione testo</label>
+                                    <select class="form-control">
+                                        <option>Piccola</option>
+                                        <option selected>Media</option>
+                                        <option>Grande</option>
+                                        <option>Extra grande</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Animazioni</label>
+                                    <select class="form-control">
+                                        <option selected>Completa (predefinito)</option>
+                                        <option>Ridotta</option>
+                                        <option>Nessuna animazione</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 40px; display: flex; justify-content: flex-end; gap: 15px;">
+                        <button class="camera-btn" style="background: #e2e8f0; color: #1e293b; padding: 16px 32px;">
+                            <i class="fas fa-times"></i> Annulla modifiche
+                        </button>
+                        <button class="camera-btn primary-btn" style="padding: 16px 32px;">
+                            <i class="fas fa-save"></i> Salva tutte le modifiche
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Inizializzazione dell'app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Gestione navigazione
+            const navItems = document.querySelectorAll('.nav-item');
+            const sections = document.querySelectorAll('.section-content');
+            
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const target = this.getAttribute('data-target');
+                    
+                    // Aggiorna la navigazione
+                    navItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Mostra la sezione corretta
+                    sections.forEach(section => {
+                        section.classList.remove('active');
+                        if (section.id === target) {
+                            section.classList.add('active');
+                            
+                            // Se è la dashboard, renderizza il grafico
+                            if (target === 'dashboard') {
+                                renderChart();
+                            }
+                            
+                            // Se è la sezione statistiche, renderizza i grafici
+                            if (target === 'stats') {
+                                renderStatsCharts();
+                            }
+                            
+                            // Se è la sezione calendario, genera il calendario
+                            if (target === 'calendar') {
+                                generateFullCalendar();
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Inizializza il grafico
+            renderChart();
+            
+            // Aggiungi effetto ripple a tutti i pulsanti
+            initRippleEffect();
+            
+            // Gestione pulsanti fotocamera
+            document.getElementById('capture-btn').addEventListener('click', function() {
+                const cameraPreview = document.querySelector('.camera-preview');
+                const placeholder = document.querySelector('.camera-placeholder');
+                
+                // Simula lo scatto di una foto
+                placeholder.innerHTML = `
+                    <i class="fas fa-check-circle" style="font-size: 60px; margin-bottom: 20px; color: var(--secondary);"></i>
+                    <p>Foto scattata con successo!</p>
+                    <p class="motivation" style="margin-top: 20px; color: var(--primary); font-weight: 700; font-size: 18px;">
+                        Analisi AI in corso...
+                    </p>
+                `;
+                
+                // Simula l'analisi dopo un ritardo
+                setTimeout(() => {
+                    placeholder.innerHTML = `
+                        <i class="fas fa-check-circle" style="font-size: 60px; margin-bottom: 20px; color: var(--secondary);"></i>
+                        <p>Analisi completata!</p>
+                        <p class="motivation" style="margin-top: 20px; color: var(--primary); font-weight: 700; font-size: 18px;">
+                            Risposte disponibili in Visualizza
+                        </p>
+                    `;
+                }, 2000);
+            });
+            
+            document.getElementById('reload-btn').addEventListener('click', function() {
+                const placeholder = document.querySelector('.camera-placeholder');
+                placeholder.innerHTML = `
+                    <i class="fas fa-camera" style="font-size: 60px; margin-bottom: 20px; color: var(--primary);"></i>
+                    <p>Anteprima della fotocamera</p>
+                    <p class="motivation" style="margin-top: 20px; color: var(--primary); font-weight: 700; font-size: 18px;">Inquadra il monitor per iniziare</p>
+                `;
+            });
+            
+            document.getElementById('upload-btn').addEventListener('click', function() {
+                // Simula il caricamento di un'immagine
+                alert('Immagine caricata con successo! Analisi AI in corso...');
+            });
+            
+            // Calendario full
+            document.getElementById('calendar-prev').addEventListener('click', function() {
+                currentMonth--;
+                if (currentMonth < 0) {
+                    currentMonth = 11;
+                    currentYear--;
+                }
+                generateFullCalendar();
+            });
+            
+            document.getElementById('calendar-next').addEventListener('click', function() {
+                currentMonth++;
+                if (currentMonth > 11) {
+                    currentMonth = 0;
+                    currentYear++;
+                }
+                generateFullCalendar();
+            });
+            
+            // Genera il calendario iniziale
+            generateFullCalendar();
+            
+            // Gestione FAQ
+            const faqQuestions = document.querySelectorAll('.faq-question');
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', function() {
+                    const faqItem = this.parentElement;
+                    faqItem.classList.toggle('active');
+                    
+                    const icon = this.querySelector('i');
+                    if (faqItem.classList.contains('active')) {
+                        icon.className = 'fas fa-chevron-up';
+                    } else {
+                        icon.className = 'fas fa-chevron-down';
+                    }
+                });
+            });
+        });
+        
+        // Variabili per il calendario
+        let currentDate = new Date();
+        let currentMonth = currentDate.getMonth();
+        let currentYear = currentDate.getFullYear();
+        
+        // Funzione per generare il calendario completo
+        function generateFullCalendar() {
+            const fullCalendar = document.getElementById('full-calendar');
+            fullCalendar.innerHTML = '';
+            
+            // Ottieni il primo giorno del mese
+            const firstDay = new Date(currentYear, currentMonth, 1);
+            // Ottieni il giorno della settimana del primo giorno (0 = Domenica, 1 = Lunedì, ...)
+            const firstDayOfWeek = firstDay.getDay();
+            // Ottieni il numero di giorni nel mese
+            const lastDay = new Date(currentYear, currentMonth + 1, 0);
+            const daysInMonth = lastDay.getDate();
+            
+            // Aggiungi giorni vuoti per allineare il primo giorno
+            for (let i = 0; i < (firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1); i++) {
+                const emptyDay = document.createElement('div');
+                emptyDay.classList.add('calendar-date', 'inactive');
+                emptyDay.textContent = new Date(currentYear, currentMonth, -i).getDate();
+                fullCalendar.appendChild(emptyDay);
+            }
+            
+            // Aggiungi i giorni del mese
+            const today = new Date();
+            for (let i = 1; i <= daysInMonth; i++) {
+                const day = document.createElement('div');
+                day.classList.add('calendar-date');
+                day.textContent = i;
+                
+                // Controlla se è oggi
+                if (i === today.getDate() && currentMonth === today.getMonth() && currentYear === today.getFullYear()) {
+                    day.classList.add('today');
+                }
+                
+                // Aggiungi evento ogni 5 giorni
+                if (i % 5 === 0) {
+                    day.classList.add('event');
+                }
+                
+                fullCalendar.appendChild(day);
+            }
+            
+            // Aggiorna l'intestazione del calendario
+            const monthNames = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 
+                               'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+            document.querySelector('#calendar .section-title').innerHTML = 
+                `<i class="fas fa-calendar"></i> Calendario - ${monthNames[currentMonth]} ${currentYear}`;
+        }
+        
+        // Funzione per l'effetto ripple
+        function initRippleEffect() {
+            const rippleButtons = document.querySelectorAll('.ripple');
+            rippleButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    const rect = this.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const ripple = document.createElement('span');
+                    ripple.className = 'ripple-effect';
+                    ripple.style.left = x + 'px';
+                    ripple.style.top = y + 'px';
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        }
+        
+        // Funzione per inizializzare il grafico
+        function renderChart() {
+            const ctx = document.getElementById('examChart').getContext('2d');
+            
+            // Dati per il grafico
+            const data = {
+                labels: ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno'],
+                datasets: [
+                    {
+                        label: 'Media Voti',
+                        data: [24, 26, 28, 27, 30, 29],
+                        borderColor: '#6c63ff',
+                        backgroundColor: 'rgba(108, 99, 255, 0.15)',
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#6c63ff',
+                        pointBorderWidth: 4,
+                        pointRadius: 8,
+                        pointHoverRadius: 10
+                    },
+                    {
+                        label: 'Media Classe',
+                        data: [22, 23, 24, 25, 26, 25],
+                        borderColor: '#00bfa6',
+                        backgroundColor: 'rgba(0, 191, 166, 0.15)',
+                        tension: 0.4,
+                        fill: true,
+                        borderDash: [5, 5],
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#00bfa6',
+                        pointBorderWidth: 4,
+                        pointRadius: 8,
+                        pointHoverRadius: 10
+                    }
+                ]
+            };
+            
+            // Opzioni del grafico
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: {
+                            color: '#f8f9ff',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(30, 30, 46, 0.95)',
+                        titleColor: '#fff',
+                        bodyColor: '#fff',
+                        borderColor: 'rgba(108, 99, 255, 0.5)',
+                        borderWidth: 2,
+                        padding: 15,
+                        cornerRadius: 15,
+                        titleFont: {
+                            size: 16,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 15
+                        },
+                        displayColors: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 18,
+                        max: 32,
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.08)'
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            stepSize: 2,
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Voto',
+                            color: '#94a3b8',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        }
+                    },
+                    x: {
+                        grid: {
+                            color: 'rgba(255, 255, 255, 0.08)'
+                        },
+                        ticks: {
+                            color: '#94a3b8',
+                            font: {
+                                weight: 'bold',
+                                size: 14
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Mese',
+                            color: '#94a3b8',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        }
+                    }
+                },
+                interaction: {
+                    mode: 'index',
+                    intersect: false
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                }
+            };
+            
+            // Creazione del grafico
+            const examChart = new Chart(ctx, {
+                type: 'line',
+                data: data,
+                options: options
+            });
+            
+            // Interattività dei bottoni
+            const chartBtns = document.querySelectorAll('.chart-btn');
+            chartBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    chartBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    
+                    // Simulazione cambio dati in base all'esame selezionato
+                    const exam = this.getAttribute('data-exam');
+                    let newData;
+                    
+                    switch(exam) {
+                        case 'marketing':
+                            newData = [26, 28, 29, 30, 28, 30];
+                            break;
+                        case 'statistica':
+                            newData = [22, 24, 26, 25, 27, 26];
+                            break;
+                        case 'finanza':
+                            newData = [24, 25, 27, 26, 28, 27];
+                            break;
+                        default: // Economia
+                            newData = [24, 26, 28, 27, 30, 29];
+                    }
+                    
+                    examChart.data.datasets[0].data = newData;
+                    examChart.update();
+                });
+            });
+        }
+        
+        // Funzione per i grafici delle statistiche
+        function renderStatsCharts() {
+            // Grafico per materia
+            const subjectCtx = document.getElementById('subjectChart').getContext('2d');
+            const subjectChart = new Chart(subjectCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Economia', 'Marketing', 'Statistica', 'Finanza', 'Diritto'],
+                    datasets: [{
+                        label: 'Media Voti',
+                        data: [28, 30, 26, 27, 25],
+                        backgroundColor: [
+                            'rgba(108, 99, 255, 0.7)',
+                            'rgba(0, 191, 166, 0.7)',
+                            'rgba(255, 107, 107, 0.7)',
+                            'rgba(138, 132, 255, 0.7)',
+                            'rgba(255, 159, 64, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(108, 99, 255)',
+                            'rgb(0, 191, 166)',
+                            'rgb(255, 107, 107)',
+                            'rgb(138, 132, 255)',
+                            'rgb(255, 159, 64)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 32,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Grafico a torta per distribuzione risposte
+            const answerCtx = document.getElementById('answerChart').getContext('2d');
+            const answerChart = new Chart(answerCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Corrette', 'Parzialmente Corrette', 'Errate', 'Non Risposte'],
+                    datasets: [{
+                        data: [75, 12, 8, 5],
+                        backgroundColor: [
+                            'rgba(108, 99, 255, 0.7)',
+                            'rgba(0, 191, 166, 0.7)',
+                            'rgba(255, 107, 107, 0.7)',
+                            'rgba(200, 200, 200, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(108, 99, 255)',
+                            'rgb(0, 191, 166)',
+                            'rgb(255, 107, 107)',
+                            'rgb(150, 150, 150)'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Grafico per tendenze temporali
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            const trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Sett 1', 'Sett 2', 'Sett 3', 'Sett 4', 'Sett 5', 'Sett 6'],
+                    datasets: [{
+                        label: 'Tempo medio per risposta (s)',
+                        data: [1.8, 1.6, 1.5, 1.4, 1.3, 1.2],
+                        borderColor: 'rgb(108, 99, 255)',
+                        backgroundColor: 'rgba(108, 99, 255, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            min: 1,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Grafico per confronto con media classe
+            const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+            const comparisonChart = new Chart(comparisonCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['Velocità', 'Precisione', 'Completezza', 'Analisi', 'Sintesi'],
+                    datasets: [
+                        {
+                            label: 'Tu',
+                            data: [92, 88, 85, 90, 87],
+                            backgroundColor: 'rgba(108, 99, 255, 0.2)',
+                            borderColor: 'rgb(108, 99, 255)',
+                            pointBackgroundColor: 'rgb(108, 99, 255)',
+                            pointBorderColor: '#fff'
+                        },
+                        {
+                            label: 'Media Classe',
+                            data: [78, 75, 72, 70, 68],
+                            backgroundColor: 'rgba(0, 191, 166, 0.2)',
+                            borderColor: 'rgb(0, 191, 166)',
+                            pointBackgroundColor: 'rgb(0, 191, 166)',
+                            pointBorderColor: '#fff'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.1)'
+                            },
+                            suggestedMin: 50,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
