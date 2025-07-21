@@ -8,7 +8,6 @@
 
 [![React Native](https://img.shields.io/badge/React%20Native-0.80+-blue.svg)](https://reactnative.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/Platform-iOS%20%7C%20Android-lightgrey.svg)](https://reactnative.dev/)
 
 </div>
